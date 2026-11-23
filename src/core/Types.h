@@ -48,11 +48,19 @@ QVector<PrayerKey> allPrayerKeys();
 
 struct Prayer {
     PrayerKey key = PrayerKey::Fajr;
-    QTime adhan;   // invalid = unknown
-    QTime iqama;   // invalid = the mosque publishes none
+
+    // The provider sends two adhan times and they mean different things: what
+    // the mosque calls, and what the calculation says. We keep both untouched
+    // and never substitute one for the other behind the caller's back — the
+    // effective `adhan` is simply the mosque's when it exists.
+    QTime mosqueAdhan;   // the mosque's own call; invalid when it publishes none
+    QTime methodAdhan;   // the provider's calculated time
+    QTime adhan;         // effective: mosqueAdhan if valid, else methodAdhan
+    QTime iqama;         // invalid = the mosque publishes none
 
     bool hasAdhan() const { return adhan.isValid(); }
     bool hasIqama() const { return iqama.isValid(); }
+    bool hasMosqueAdhan() const { return mosqueAdhan.isValid(); }
 };
 
 // The mosque's Friday service. `khutbah` can be empty even when the service
@@ -65,13 +73,20 @@ struct Jumuah {
 
 enum class TimesSource { None, IqamahMosque, IqamahCalculated };
 
+// The provider's own word about the day it just sent. "None" is a real answer:
+// it means this mosque has no published timetable, so every iqama is null and
+// the times are the country calculation. It is not an error and must not be
+// dressed up as one.
+enum class DayStatus { Unknown, Fresh, Stale, None };
+
 // Where a value came from, and how fresh it is. Every day carries one, so the
 // UI can be honest ("calculated", "as of 17 Nov") instead of silently stale.
 struct Provenance {
     TimesSource source = TimesSource::None;
     QDate publishedFor;         // the day the source published these times for
     QDateTime asOf;             // when the source says it was last updated
-    bool stale = false;         // the provider flags it as out of date
+    DayStatus status = DayStatus::Unknown;   // fresh | stale | none | unknown
+    bool stale = false;                       // status == Stale, kept for convenience
     bool predicted = false;     // we extrapolated it; never true for provider data
 };
 

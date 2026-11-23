@@ -7,6 +7,7 @@ set(TEST_SOURCES
     tst_statemachine.cpp
     tst_iqamahparser.cpp
     tst_worldwide.cpp
+    tst_nosource.cpp
 )
 
 foreach(source ${TEST_SOURCES})

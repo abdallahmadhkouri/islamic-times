@@ -75,6 +75,29 @@ Mid-Sha'ban and Isra wal-Miraj are in the table but excluded unless
 `EventCalendar::events(/*includeMinor=*/true)`. They are contested as observances and
 would add noise to a six-slot grid.
 
+## 13. Which mosque — chosen, and gated by the provider's own flag
+
+The user gives a city, so we have a latitude and a longitude. The lookup is
+`GET /v1/mosques/near/{lat},{lon}.json?radius_km=`, and the API accepts exactly
+2, 5, 10, 25 and 50 km.
+
+Measured for Sidi Ali Ben Aoun: **0** mosques within 10 km, **1** within 50 km
+(NiCd Valley Mosque, 17.36 km, `has_source: false`). Fetching that mosque returns
+`status: "none"`, every `iqama` null, and the Tunisian ministry calculation in
+`azaan.method` — 05:35, 12:16, 14:54, 17:17, 18:42.
+
+So:
+
+- Query at **10 km** — a town, not a region.
+- Show the mosque's name and distance in small text **only** when it is found, and
+  only claim it as "your mosque" when `has_source` is true.
+- Never adopt a mosque 17 km away: its jamaa belongs to another town.
+- No mosque (or `has_source: false`) means the **iqama layer is absent**, not
+  broken: the widget counts to the adhan and looks finished without it.
+
+Consequence for the design: the iqama countdown is an *optional second layer*, not
+the baseline. `tst_nosource` walks a whole day that has no iqama at all.
+
 ## 8. Predicted iqama = the mosque's own offsets — chosen
 
 The mosque endpoint publishes **today** (about 1.7 KB). Tomorrow's iqama is today's
@@ -94,6 +117,26 @@ day sweep test pins it (five prayers, five iqama entries, five prayer windows).
 `status: "fresh" | "stale"`, `stale: bool` and `extracted_at` all change between days
 and between mosques. The parser copies them into `Provenance`; the UI decides how to
 show them. Nothing is hardcoded, and both paths are covered by tests.
+
+## 12. We never repair the provider's payload — settled (a rule, not a preference)
+
+If a field is null it stays null; if a value looks odd it is passed through; if a
+method field is missing we show nothing rather than infer it. The provider owns its
+data and may fix or change it at any time, so any correction we apply locally would
+be a lie that outlives their fix.
+
+Two consequences already implemented:
+
+- The day carries the provider's own `status`: **fresh**, **stale** or **none**.
+  `none` means "this mosque has no published timetable" — a real answer, shown as
+  the absence of iqama, never as an error and never as a substituted value.
+- The provider sends **two** adhan times and both are kept: `mosqueAdhan` (what the
+  mosque calls) and `methodAdhan` (what the calculation says). The effective
+  `adhan` is the mosque's when it exists. Nothing is overwritten, so a widget can
+  still tell the user "this is the calculated time, not your mosque's".
+
+Rejected on this basis: inferring Umm al-Qura's 90-minute Isha interval from the
+numbers when the payload sends `isha: null`. If they send null, we display a dash.
 
 ## 11. Method is data, not a constant — settled
 

@@ -75,8 +75,15 @@ Provenance parseProvenance(const QJsonObject &payload, const QDate &dayDate)
         provenance.source = TimesSource::IqamahMosque;
 
     provenance.publishedFor = dayDate;
-    provenance.stale = payload.value(QStringLiteral("stale")).toBool(false)
-                    || payload.value(QStringLiteral("status")).toString() == QLatin1String("stale");
+    const QString status = payload.value(QStringLiteral("status")).toString();
+    if (status == QLatin1String("fresh"))
+        provenance.status = DayStatus::Fresh;
+    else if (status == QLatin1String("stale"))
+        provenance.status = DayStatus::Stale;
+    else if (status == QLatin1String("none"))
+        provenance.status = DayStatus::None;
+    provenance.stale = provenance.status == DayStatus::Stale
+                    || payload.value(QStringLiteral("stale")).toBool(false);
 
     const QString asOf = payload.value(QStringLiteral("as_of")).toString();
     if (!asOf.isEmpty()) {
@@ -148,11 +155,11 @@ Prayer prayerFor(const QJsonObject &prayers, PrayerKey key)
 
     const QJsonObject azaan = entry.value(QStringLiteral("azaan")).toObject();
     const QJsonObject mosque = azaan.value(QStringLiteral("mosque")).toObject();
-    prayer.adhan = parseTime(mosque.value(QStringLiteral("time")).isUndefined()
-                             ? mosque
-                             : mosque.value(QStringLiteral("time")));
-    if (!prayer.adhan.isValid())
-        prayer.adhan = parseTime(azaan.value(QStringLiteral("method")));
+    prayer.mosqueAdhan = parseTime(mosque.value(QStringLiteral("time")).isUndefined()
+                                   ? mosque
+                                   : mosque.value(QStringLiteral("time")));
+    prayer.methodAdhan = parseTime(azaan.value(QStringLiteral("method")));
+    prayer.adhan = prayer.mosqueAdhan.isValid() ? prayer.mosqueAdhan : prayer.methodAdhan;
 
     return prayer;
 }

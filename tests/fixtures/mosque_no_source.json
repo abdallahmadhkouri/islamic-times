@@ -1,0 +1,88 @@
+{
+ "format": "mosque/v1",
+ "id": "e9a84733-0f3a-49dc-a5a5-aa94b439f612",
+ "name": "NiCd Valley Mosque",
+ "address": {
+  "text": null,
+  "street": null,
+  "city": "Bu Ballal",
+  "state": null,
+  "postal_code": null,
+  "country": "Tunisia"
+ },
+ "location": {
+  "lat": 34.4126322,
+  "lon": 9.3899332
+ },
+ "timezone": "Africa/Tunis",
+ "website": null,
+ "status": "none",
+ "stale": false,
+ "as_of": null,
+ "extracted_at": null,
+ "days": [
+  {
+   "date": "2026-11-23",
+   "hijri": "1448-06-13",
+   "prayers": {
+    "fajr": {
+     "iqamah": null,
+     "azaan": {
+      "mosque": null,
+      "method": "05:35"
+     }
+    },
+    "dhuhr": {
+     "iqamah": null,
+     "azaan": {
+      "mosque": null,
+      "method": "12:16"
+     }
+    },
+    "asr": {
+     "iqamah": null,
+     "azaan": {
+      "mosque": null,
+      "method": "14:54"
+     }
+    },
+    "maghrib": {
+     "iqamah": null,
+     "azaan": {
+      "mosque": null,
+      "method": "17:17"
+     }
+    },
+    "isha": {
+     "iqamah": null,
+     "azaan": {
+      "mosque": null,
+      "method": "18:42"
+     }
+    }
+   },
+   "sunrise": {
+    "mosque": null,
+    "method": "07:03"
+   },
+   "jumuah": []
+  }
+ ],
+ "method": {
+  "id": "tn_ministry",
+  "name": "Ministry of Religious Affairs, Tunisia",
+  "fajr": 18,
+  "asr": "standard",
+  "isha": 18,
+  "adjustments": {
+   "dhuhr": 7,
+   "maghrib": 3
+  },
+  "highlat": "middle_of_the_night"
+ },
+ "source": {
+  "kind": "calculated"
+ },
+ "api_version": "1c.2",
+ "defaults_version": "2026-11-17.2"
+}
