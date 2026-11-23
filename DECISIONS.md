@@ -86,7 +86,13 @@ Measured for Sidi Ali Ben Aoun: **0** mosques within 10 km, **1** within 50 km
 `status: "none"`, every `iqama` null, and the Tunisian ministry calculation in
 `azaan.method` — 05:35, 12:16, 14:54, 17:17, 18:42.
 
-So:
+Saif confirmed the same behaviour in the official app: choosing his position
+automatically ended on the Tunisian ministry, with no mosque offered. He prefers
+that to being shown a mosque that is not his.
+
+Note what the ladder allows: **2, 5, 10, 25, 50** km — there is no 20. So the real
+choice is 10 or 25, and 25 is exactly the one that would drag in Bu Ballal at
+17.36 km. Hence:
 
 - Query at **10 km** — a town, not a region.
 - Show the mosque's name and distance in small text **only** when it is found, and
