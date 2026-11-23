@@ -3,7 +3,7 @@ import json, html, datetime, sys
 src = sys.argv[1] if len(sys.argv) > 1 else "report.json"
 dst = sys.argv[2] if len(sys.argv) > 2 else "report.html"
 data = json.load(open(src))
-day = data["day"]; method = data["method"]; states = data["states"]; month = data["month"]
+day = data["day"]; method = data["method"]; states = data["states"]; month = data.get("month", [])
 events = data.get("events", {}); offsets = data.get("iqamaOffsets", {}); mosque = data.get("mosque")
 
 AR = {"fajr": "الفجر", "sunrise": "الشروق", "dhuhr": "الظهر", "asr": "العصر",
@@ -81,8 +81,8 @@ for hh, mm in [(5, 0), (5, 52), (6, 5), (12, 0), (19, 40), (22, 0)]:
               '<div class="big" lang="ar" dir="rtl">%s</div><div class="sub">%s</div>'
               '<div class="cd">%s</div><div class="det">%s</div></div>') % (s["at"], big, sub, cd, det)
 
-first = datetime.date.fromisoformat(month[0]["date"])
-lead = first.weekday() % 7
+first = datetime.date.fromisoformat(month[0]["date"]) if month else None
+lead = first.weekday() % 7 if first else 0
 cells = '<div class="cell empty"></div>' * lead
 for d in month:
     cls = "cell"
@@ -173,27 +173,39 @@ th { color:#7b868e; font-weight:600; font-size:11px; text-transform:uppercase; l
 
 <div class="panel"><h2>What a tile would show at six moments</h2><div class="cards">__CARDS__</div></div>
 
-<div class="panel"><h2>The five prayers, adhan and iqama</h2>
+<div class="panel"><h2>The times of the day, adhan and iqama</h2>
 <table><tr><th>prayer</th><th>adhan</th><th>iqama</th><th>offset (min)</th></tr>__PROW__</table></div>
 
 <div class="panel"><h2>Sampled every 30 minutes</h2>
 <table><tr><th>time</th><th>state</th><th>counting to</th><th>remaining</th></tr>__TBL__</table></div>
 
-<div class="panel"><h2>The month __MONTH__ — Hijri days and the events in it</h2>
-<div class="grid">__CELLS__</div>
-<div style="margin-top:10px" class="foot">Gold = an Islamic event starts that day. Shaded = Friday. Gregorian day big, Hijri day as month/day small.</div></div>
+__MONTHPANEL__
 
-<div class="panel"><h2>Events, as the library resolves them</h2><div class="chips">
+__EVENTSPANEL__
+
+__FOOT__
+</body></html>"""
+
+month_panel = """<div class="panel"><h2>The month __MONTH__ — Hijri days and the events in it</h2>
+<div class="grid">__CELLS__</div>
+<div style="margin-top:10px" class="foot">Gold = an Islamic event starts that day. Shaded = Friday. Gregorian day big, Hijri day as month/day small.</div></div>""" if month else ""
+
+events_panel = """<div class="panel"><h2>Events, as the library resolves them</h2><div class="chips">
 <span>current <b>__ECUR__</b></span>
 <span>next <b>__ENEXT__</b></span>
 <span>days to next <b>__EDAYS__</b></span>
-</div></div>
+</div></div>""" if events else ""
 
-<div class="panel"><h2>How to read this</h2><div class="foot">
+if month:
+    foot = """<div class="panel"><h2>How to read this</h2><div class="foot">
 Every band, tick and countdown above comes from <span class="mono">islamic-times</span> — the same C++ the widgets will call, driven by the same fixtures the tests use.
-The day is <b>1 Ramadan 1448</b>: calculated times from Iqamah's year payload for Tunis, with iqama offsets taken from a real mosque day (Grande Mosquée de Paris: +8, +8, +8, 0, +8). That is the "the mosque published today, we extrapolate" path, so the report also shows what a predicted iqama looks like.
-</div></div>
-</body></html>"""
+Calculated times from Iqamah's year payload, with iqama offsets taken from a real mosque day. That is the "the mosque published today, we extrapolate" path, so the report also shows what a predicted iqama looks like.
+</div></div>"""
+else:
+    foot = """<div class="panel"><h2>How to read this</h2><div class="foot">
+Every band, tick and countdown above comes from <span class="mono">islamic-times</span>, walking one real mosque day — the day its own widget prints, transcribed into the provider's shape.
+Two things to notice: the amber gap before <b>fajr</b> is 30 minutes while every other gap is 10, so the "waiting for iqama" state is a long, first-class state and not an afterthought; and <b>sunrise</b> appears in the table but never as a countdown, because nobody counts down to a sunrise and doing so would hide dhuhr for five hours.
+</div></div>"""
 
 repl = {
     "__ISO__": iso(day["date"]), "__HIJRI__": day["hijri"],
@@ -202,7 +214,8 @@ repl = {
     "__ISHA__": str(method["ishaAngle"]), "__ASR__": method["asr"] or "—",
     "__HL__": method["highLat"] or "—", "__ADJ__": adjust,
     "__DEF__": html.escape(method.get("defaultsVersion") or "—"),
-    "__IQSRC__": ("offsets from " + mosque["date"] + " (predicted)") if mosque else "no mosque",
+    "__IQSRC__": ("the mosque's own published day" if not month else
+                  "offsets from " + mosque["date"] + " (predicted)") if mosque else "no mosque",
     "__W__": str(W), "__H__": str(H), "__HOURS__": hours + "".join(bars) + "".join(ticks),
     "__C1__": STATE_COL["waitingAdhan"], "__C2__": STATE_COL["waitingIqama"],
     "__C3__": STATE_COL["inPrayer"], "__C4__": STATE_COL["idle"],
@@ -211,6 +224,7 @@ repl = {
     "__ECUR__": events.get("current", {}).get("id", "—"),
     "__ENEXT__": events.get("next", {}).get("id", "—"),
     "__EDAYS__": str(events.get("next", {}).get("daysAway", "—")),
+    "__MONTHPANEL__": month_panel, "__EVENTSPANEL__": events_panel, "__FOOT__": foot,
 }
 for k, v in repl.items():
     doc = doc.replace(k, v)

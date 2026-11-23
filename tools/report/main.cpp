@@ -96,32 +96,36 @@ int main(int argc, char **argv)
     parser.addOption(windowOption);
     parser.process(app);
 
+    // Two ways to run: a year payload (pick a day out of it, optionally dress it
+    // with a mosque's iqama offsets), or a single mosque day on its own — which
+    // is how a real mosque's published day gets checked against the library.
     QVector<PrayerDay> year;
     MethodPreset method;
     QString error;
-    if (!IqamahParser::parseYearTimes(readAll(parser.value(QStringLiteral("year"))), &year, &method, &error)) {
+    const bool haveYear = parser.isSet(QStringLiteral("year"));
+    if (haveYear && !IqamahParser::parseYearTimes(readAll(parser.value(QStringLiteral("year"))), &year, &method, &error)) {
         QTextStream(stderr) << "year payload: " << error << Qt::endl;
         return 1;
     }
 
-    const QDate date = QDate::fromString(parser.value(QStringLiteral("date")), Qt::ISODate);
-    const PrayerDay *picked = nullptr;
-    for (const PrayerDay &day : year) {
-        if (day.date == date) {
-            picked = &day;
-            break;
+    PrayerDay day;
+    if (haveYear) {
+        const QDate date = QDate::fromString(parser.value(QStringLiteral("date")), Qt::ISODate);
+        const PrayerDay *picked = nullptr;
+        for (const PrayerDay &entry : year) {
+            if (entry.date == date) {
+                picked = &entry;
+                break;
+            }
         }
-    }
-    if (!picked) {
-        QTextStream(stderr) << "date not in the payload" << Qt::endl;
-        return 1;
+        if (!picked) {
+            QTextStream(stderr) << "date not in the payload" << Qt::endl;
+            return 1;
+        }
+        day = *picked;
+        day.provenance.predicted = false;
     }
 
-    PrayerDay day = *picked;
-    day.provenance.predicted = false;
-
-    // Iqama offsets from a real mosque, applied to the calculated day: this is
-    // exactly the "the mosque publishes today, we extrapolate tomorrow" path.
     QJsonObject mosqueJson;
     QMap<QString, int> offsets;
     if (parser.isSet(QStringLiteral("mosque"))) {
@@ -131,29 +135,38 @@ int main(int argc, char **argv)
             return 1;
         }
         for (const Prayer &prayer : mosqueDay.prayers) {
-            if (prayer.hasAdhan() && prayer.hasIqama()) {
-                const int minutes = prayer.adhan.secsTo(prayer.iqama) / 60;
-                offsets.insert(prayerKeyId(prayer.key), minutes);
-                if (Prayer *target = day.prayer(prayer.key))
-                    target->iqama = target->adhan.addSecs(minutes * 60);
-            }
+            if (prayer.hasAdhan() && prayer.hasIqama())
+                offsets.insert(prayerKeyId(prayer.key), prayer.adhan.secsTo(prayer.iqama) / 60);
         }
-        day.provenance.predicted = true;
 
-        QJsonObject source;
-        source.insert(QStringLiteral("kind"), QStringLiteral("mosque-published day"));
+        if (haveYear) {
+            // The "the mosque published today, we extrapolate tomorrow" path.
+            for (auto it = offsets.constBegin(); it != offsets.constEnd(); ++it) {
+                if (Prayer *target = day.prayer(prayerKeyFromId(it.key())))
+                    target->iqama = target->adhan.addSecs(it.value() * 60);
+            }
+            day.provenance.predicted = true;
+        } else {
+            day = mosqueDay;    // the mosque's own published day, untouched
+        }
+
         mosqueJson.insert(QStringLiteral("date"), mosqueDay.date.toString(Qt::ISODate));
         mosqueJson.insert(QStringLiteral("provenance"), QJsonObject{
             { QStringLiteral("source"), int(mosqueDay.provenance.source) },
             { QStringLiteral("stale"), mosqueDay.provenance.stale },
             { QStringLiteral("asOf"), mosqueDay.provenance.asOf.toString(Qt::ISODate) }
         });
+    } else if (!haveYear) {
+        QTextStream(stderr) << "need --year, --mosque, or both" << Qt::endl;
+        return 1;
     }
 
     // Events: a HijriYear over the payload, so the report's calendar is real.
     HijriYear hijriYear;
-    for (const PrayerDay &entry : year)
-        hijriYear.add(entry.date, entry.hijri);
+    if (haveYear) {
+        for (const PrayerDay &entry : year)
+            hijriYear.add(entry.date, entry.hijri);
+    }
     const CalendarSnapshot snapshot = EventCalendar::around(day.hijri, day.date, hijriYear);
 
     QJsonObject root;
@@ -205,14 +218,14 @@ int main(int argc, char **argv)
     root.insert(QStringLiteral("states"), states);
 
     QJsonObject events;
-    if (snapshot.current) {
+    if (haveYear && snapshot.current) {
         events.insert(QStringLiteral("current"), QJsonObject{
             { QStringLiteral("id"), snapshot.current->event.id },
             { QStringLiteral("date"), snapshot.current->date.toString(Qt::ISODate) },
             { QStringLiteral("daysAway"), snapshot.current->daysAway }
         });
     }
-    if (snapshot.next) {
+    if (haveYear && snapshot.next) {
         events.insert(QStringLiteral("next"), QJsonObject{
             { QStringLiteral("id"), snapshot.next->event.id },
             { QStringLiteral("date"), snapshot.next->date.toString(Qt::ISODate) },
@@ -223,6 +236,7 @@ int main(int argc, char **argv)
 
     // The month around the chosen day, with the Hijri day and any event on it.
     QJsonArray month;
+    if (haveYear) {
     const QDate first(day.date.year(), day.date.month(), 1);
     const QDate last = first.addMonths(1).addDays(-1);
     for (QDate cursor = first; cursor <= last; cursor = cursor.addDays(1)) {
@@ -239,6 +253,7 @@ int main(int argc, char **argv)
                 entry.insert(QStringLiteral("event"), event.id);
         }
         month.append(entry);
+    }
     }
     root.insert(QStringLiteral("month"), month);
 

@@ -102,6 +102,29 @@ private slots:
         QCOMPARE(day.prayer(PrayerKey::Dhuhr)->iqama, QTime(13, 20));  // jumuah iqama
     }
 
+    // A real day from a real mosque in Saif's town, as its own widget prints it.
+    // The point of this fixture is that the gaps are not uniform: fajr waits 30
+    // minutes, everything else 10. Any code that assumes one global iqama offset
+    // fails here.
+    void sidiAliOffsetsAreNotUniform()
+    {
+        const QByteArray payload = readFixture("fixtures/mosque_sidi_ali_2026-11-23.json");
+        QVERIFY(!payload.isEmpty());
+        PrayerDay day;
+        QString error;
+        QVERIFY2(IqamahParser::parseMosqueDay(payload, &day, &error), qPrintable(error));
+        QCOMPARE(day.date, QDate(2026, 11, 23));
+        QCOMPARE(day.hijri, (HijriDate{1448, 6, 13}));
+
+        QCOMPARE(day.prayer(PrayerKey::Fajr)->adhan.secsTo(day.prayer(PrayerKey::Fajr)->iqama) / 60, 30);
+        QCOMPARE(day.prayer(PrayerKey::Dhuhr)->adhan.secsTo(day.prayer(PrayerKey::Dhuhr)->iqama) / 60, 10);
+        QCOMPARE(day.prayer(PrayerKey::Asr)->adhan.secsTo(day.prayer(PrayerKey::Asr)->iqama) / 60, 10);
+        QCOMPARE(day.prayer(PrayerKey::Maghrib)->adhan.secsTo(day.prayer(PrayerKey::Maghrib)->iqama) / 60, 10);
+        QCOMPARE(day.prayer(PrayerKey::Isha)->adhan.secsTo(day.prayer(PrayerKey::Isha)->iqama) / 60, 10);
+        QCOMPARE(day.prayer(PrayerKey::Sunrise)->adhan, QTime(7, 2));
+        QVERIFY(!day.prayer(PrayerKey::Sunrise)->hasIqama());
+    }
+
     void aStaleDayIsFlaggedAsSuch()
     {
         // The live payload switches between "fresh" and "stale" depending on the
