@@ -8,6 +8,8 @@ set(TEST_SOURCES
     tst_iqamahparser.cpp
     tst_worldwide.cpp
     tst_nosource.cpp
+    tst_payloadcache.cpp
+    tst_iqamahclient.cpp
 )
 
 foreach(source ${TEST_SOURCES})

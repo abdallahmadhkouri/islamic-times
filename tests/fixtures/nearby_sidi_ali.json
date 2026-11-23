@@ -1,0 +1,16 @@
+{
+  "location": { "lat": 34.55, "lon": 9.48 },
+  "radius_km": 50,
+  "q": null,
+  "total": 1,
+  "mosques": [{
+    "id": "e9a84733-0f3a-49dc-a5a5-aa94b439f612",
+    "name": "NiCd Valley Mosque",
+    "distance_km": 17.36,
+    "location": { "lat": 34.4126322, "lon": 9.3899332 },
+    "city": "Bu Ballal",
+    "country": "Tunisia",
+    "has_source": false,
+    "url": "https://api.iqamah.net/v1/mosque/e9a84733-0f3a-49dc-a5a5-aa94b439f612.json"
+  }]
+}
