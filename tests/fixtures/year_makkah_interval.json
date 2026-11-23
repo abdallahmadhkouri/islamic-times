@@ -1,0 +1,59 @@
+{
+ "location": {
+  "lat": 21.42,
+  "lon": 39.83,
+  "tz": "Asia/Riyadh",
+  "country": "SA"
+ },
+ "source": {
+  "kind": "calculated"
+ },
+ "method": {
+  "id": "umm_al_qura",
+  "name": "Umm al-Qura University, Makkah",
+  "fajr": 18.5,
+  "isha_interval": 90,
+  "asr": "standard",
+  "highlat": "middle_of_the_night"
+ },
+ "notes": null,
+ "days": [
+  {
+   "date": "2027-06-21",
+   "hijri": "1449-01-16",
+   "fajr": "04:11",
+   "sunrise": "05:39",
+   "dhuhr": "12:22",
+   "asr": "15:42",
+   "maghrib": "19:06",
+   "isha": "20:36",
+   "utc": {
+    "fajr": "2027-06-21T01:11:00Z",
+    "sunrise": "2027-06-21T02:39:00Z",
+    "dhuhr": "2027-06-21T09:22:00Z",
+    "asr": "2027-06-21T12:42:00Z",
+    "maghrib": "2027-06-21T16:06:00Z",
+    "isha": "2027-06-21T17:36:00Z"
+   }
+  },
+  {
+   "date": "2027-12-21",
+   "hijri": "1449-07-23",
+   "fajr": "05:32",
+   "sunrise": "06:54",
+   "dhuhr": "12:19",
+   "asr": "15:23",
+   "maghrib": "17:43",
+   "isha": "19:13",
+   "utc": {
+    "fajr": "2027-12-21T02:32:00Z",
+    "sunrise": "2027-12-21T03:54:00Z",
+    "dhuhr": "2027-12-21T09:19:00Z",
+    "asr": "2027-12-21T12:23:00Z",
+    "maghrib": "2027-12-21T14:43:00Z",
+    "isha": "2027-12-21T16:13:00Z"
+   }
+  }
+ ],
+ "fixture_note": "Umm al-Qura: method.isha is null because Isha is maghrib + 90 minutes."
+}

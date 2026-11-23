@@ -1,0 +1,65 @@
+{
+ "location": {
+  "lat": 69.65,
+  "lon": 18.96,
+  "tz": "Europe/Oslo",
+  "country": "NO",
+  "high_latitude": true
+ },
+ "source": {
+  "kind": "calculated"
+ },
+ "method": {
+  "id": "mwl",
+  "name": "Muslim World League",
+  "fajr": 18,
+  "isha": 17,
+  "adjustments": {
+   "dhuhr": 1
+  },
+  "asr": "standard",
+  "highlat": "middle_of_the_night"
+ },
+ "notes": [
+  "Above 48° Fajr and Isha are approximated (middle_of_the_night) when twilight does not end."
+ ],
+ "days": [
+  {
+   "date": "2027-06-21",
+   "hijri": "1449-01-16",
+   "fajr": null,
+   "sunrise": null,
+   "dhuhr": "12:47",
+   "asr": "17:58",
+   "maghrib": null,
+   "isha": null,
+   "utc": {
+    "fajr": null,
+    "sunrise": null,
+    "dhuhr": "2027-06-21T10:47:00Z",
+    "asr": "2027-06-21T15:58:00Z",
+    "maghrib": null,
+    "isha": null
+   }
+  },
+  {
+   "date": "2027-12-21",
+   "hijri": "1449-07-23",
+   "fajr": "06:28",
+   "sunrise": null,
+   "dhuhr": "11:43",
+   "asr": "12:14",
+   "maghrib": null,
+   "isha": "16:44",
+   "utc": {
+    "fajr": "2027-12-21T05:28:00Z",
+    "sunrise": null,
+    "dhuhr": "2027-12-21T10:43:00Z",
+    "asr": "2027-12-21T11:14:00Z",
+    "maghrib": null,
+    "isha": "2027-12-21T15:44:00Z"
+   }
+  }
+ ],
+ "fixture_note": "69.65N 18.96E: 21 June has no fajr/sunrise/maghrib/isha, 21 December has no sunrise/maghrib."
+}

@@ -1,0 +1,83 @@
+{
+ "location": {
+  "lat": 59.91,
+  "lon": 10.75,
+  "tz": "Europe/Oslo",
+  "country": "NO",
+  "high_latitude": true
+ },
+ "source": {
+  "kind": "calculated"
+ },
+ "method": {
+  "id": "mwl",
+  "name": "Muslim World League",
+  "fajr": 18,
+  "isha": 17,
+  "adjustments": {
+   "dhuhr": 1
+  },
+  "asr": "standard",
+  "highlat": "middle_of_the_night"
+ },
+ "notes": [
+  "Above 48° Fajr and Isha are approximated (middle_of_the_night) when twilight does not end."
+ ],
+ "days": [
+  {
+   "date": "2027-06-20",
+   "hijri": "1449-01-15",
+   "fajr": "01:19",
+   "sunrise": "03:54",
+   "dhuhr": "13:20",
+   "asr": "18:00",
+   "maghrib": "22:44",
+   "isha": "01:19",
+   "utc": {
+    "fajr": "2027-06-19T23:19:00Z",
+    "sunrise": "2027-06-20T01:54:00Z",
+    "dhuhr": "2027-06-20T11:20:00Z",
+    "asr": "2027-06-20T16:00:00Z",
+    "maghrib": "2027-06-20T20:44:00Z",
+    "isha": "2027-06-20T23:19:00Z"
+   }
+  },
+  {
+   "date": "2027-06-21",
+   "hijri": "1449-01-16",
+   "fajr": "01:19",
+   "sunrise": "03:54",
+   "dhuhr": "13:20",
+   "asr": "18:00",
+   "maghrib": "22:44",
+   "isha": "01:19",
+   "utc": {
+    "fajr": "2027-06-20T23:19:00.500Z",
+    "sunrise": "2027-06-21T01:54:00Z",
+    "dhuhr": "2027-06-21T11:20:00Z",
+    "asr": "2027-06-21T16:00:00Z",
+    "maghrib": "2027-06-21T20:44:00Z",
+    "isha": "2027-06-21T23:19:00.500Z"
+   }
+  },
+  {
+   "date": "2027-06-22",
+   "hijri": "1449-01-17",
+   "fajr": "01:19",
+   "sunrise": "03:54",
+   "dhuhr": "13:20",
+   "asr": "18:01",
+   "maghrib": "22:44",
+   "isha": "01:19",
+   "utc": {
+    "fajr": "2027-06-21T23:19:00Z",
+    "sunrise": "2027-06-22T01:54:00Z",
+    "dhuhr": "2027-06-22T11:20:00Z",
+    "asr": "2027-06-22T16:01:00Z",
+    "maghrib": "2027-06-22T20:44:00Z",
+    "isha": "2027-06-22T23:19:00Z"
+   }
+  }
+ ],
+ "fixture_note": "59.91N 10.75E, June: Isha falls after midnight and is written as 01:19 — same clock value as Fajr."
+}

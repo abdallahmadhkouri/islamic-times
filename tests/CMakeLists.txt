@@ -6,6 +6,7 @@ set(TEST_SOURCES
     tst_eventcalendar.cpp
     tst_statemachine.cpp
     tst_iqamahparser.cpp
+    tst_worldwide.cpp
 )
 
 foreach(source ${TEST_SOURCES})
