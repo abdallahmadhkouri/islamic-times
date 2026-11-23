@@ -126,6 +126,45 @@ private slots:
         QCOMPARE(snapshot.seconds, 300);
     }
 
+    // The sweep that catches "one state never fires" — a class of bug that unit
+    // assertions on single instants miss entirely.
+    void theWholeDayIsCoveredAndEveryWindowHolds()
+    {
+        const PrayerDay day = sampleDay();
+        const PrayerDay tomorrow = sampleDay(day.date.addDays(1));
+        int inPrayer = 0, enteredIqama = 0, enteredPrayer = 0;
+        PrayerState previous = PrayerState::Idle;
+        QDateTime previousTarget;
+
+        for (int minute = 0; minute < 24 * 60; ++minute) {
+            const QDateTime now(day.date, QTime(minute / 60, minute % 60));
+            const auto snapshot = evaluate(day, &tomorrow, now, 20);
+            QVERIFY2(snapshot.state != PrayerState::Idle,
+                     qPrintable(QStringLiteral("idle at minute %1").arg(minute)));
+
+            if (snapshot.state == PrayerState::InPrayer)
+                ++inPrayer;
+            if (snapshot.state == PrayerState::WaitingIqama && previous != PrayerState::WaitingIqama)
+                ++enteredIqama;
+            if (snapshot.state == PrayerState::InPrayer && previous != PrayerState::InPrayer)
+                ++enteredPrayer;
+            previous = snapshot.state;
+
+            // The target may only move forward: 06:15 counting to Dhuhr must not
+            // fall back to a target it already passed.
+            if (previousTarget.isValid() && snapshot.target.isValid())
+                QVERIFY2(previousTarget <= snapshot.target,
+                         qPrintable(QStringLiteral("target went backwards at %1")
+                                        .arg(now.toString(Qt::ISODate))));
+            if (snapshot.target.isValid())
+                previousTarget = snapshot.target;
+        }
+
+        QCOMPARE(enteredIqama, 5);        // every prayer here has its own iqama
+        QCOMPARE(enteredPrayer, 5);       // and each is entered exactly once
+        QCOMPARE(inPrayer, 5 * 20);       // twenty minutes of window per prayer
+    }
+
     void anEmptyDayIsIdleNotACrash()
     {
         const auto snapshot = evaluate(PrayerDay{}, nullptr, at(12, 0));

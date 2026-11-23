@@ -4,8 +4,8 @@ A C++/Qt library for Islamic time facts: what time it is for prayer, which Islam
 day it is, and what comes next. It is deliberately not a widget — widgets are views
 built on top of it.
 
-**Status:** core, parsers and tests. The network client, the cache, the QML plugin and
-the widgets follow.
+**Status:** core, parsers, tests and the behaviour report. The network client, the
+cache, the QML plugin and the widgets follow.
 
 ## Why it exists
 
@@ -44,6 +44,29 @@ parser keeps the provenance so a UI can show it.
 | `src/providers/IqamahParser.*` | bytes in, value types out |
 | `tests/` | 5 suites, 46 test functions, 178 assertions, no network |
 
+## Seeing it
+
+`tools/report` turns the library's own state into JSON, and `render.py` turns that
+JSON into one page you can read at a glance:
+
+```bash
+./build/tools/report/it-report \
+  --year tests/fixtures/year_times.json \
+  --mosque tests/fixtures/mosque_day.json \
+  --date 2027-02-08 --step 5 > report.json
+python3 tools/report/render.py report.json > report.html
+```
+
+The page shows, for one real day: where every number came from (method, angles,
+adjustments, iqama provenance), a 24-hour band chart of the four states, six tiles
+showing what a widget would display at six moments, the prayer table, a half-hourly
+state table, and a Hijri month calendar with the events on it.
+
+It exists because a state machine is hard to trust from unit tests alone: the first
+run of the report showed that the `InPrayer` state **never fired** — the tool's own
+`--in-prayer` value defaulted to 0 — which no single-instant test had noticed. The day
+sweep test now pins the whole 1440-minute path.
+
 ## The state machine
 
 The thing everybody gets wrong. Sunrise is not a prayer and is skipped; without an
@@ -63,6 +86,23 @@ ctest --test-dir build --output-on-failure
 ```
 
 Qt 6.5 or newer, Core only.
+
+## Storage, and why it is Android-shaped
+
+Cache is a backup, not the source of truth: the network is asked first, every launch
+and every few hours; the cache fills the gaps and marks what it serves as stale.
+
+| | |
+|---|---|
+| Where | `QStandardPaths::AppDataLocation` → on Android `/data/data/<package>/files`, app-private, no permission, no storage prompt, survives reboot, removed on uninstall |
+| What | one JSON per year (`times-2027.json`, ~122 KB) and one per mosque day (`mosque-<id>-<date>.json`, ~1.7 KB) |
+| How written | `QSaveFile` — temp file plus atomic rename, so an interrupted write can never leave a half file |
+| How read | synchronously at startup; 122 KB parses in a few milliseconds, so the first frame is already correct instead of flashing placeholders |
+| Why not SQLite | the access pattern is "one file per day, read once" — a database would add a dependency and size for no query |
+
+Nothing is written outside the app's private directory, so the library needs no
+storage permission on any Android version, and nothing breaks when the OS tightens
+scoped storage further.
 
 ## Roadmap
 

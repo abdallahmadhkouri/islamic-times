@@ -10,3 +10,8 @@ find_package(Qt6 6.5 REQUIRED COMPONENTS Core)
 enable_testing()
 add_subdirectory(src)
 add_subdirectory(tests)
+
+option(ISLAMIC_TIMES_TOOLS "Build the report tool" ON)
+if(ISLAMIC_TIMES_TOOLS)
+    add_subdirectory(tools/report)
+endif()

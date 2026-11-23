@@ -93,18 +93,43 @@ Provenance parseProvenance(const QJsonObject &payload, const QDate &dayDate)
     return provenance;
 }
 
+// "fajr": 18 is an angle in degrees; "fajr": "90 min" is an interval. Both are
+// kept, in their own field, because they mean different things.
+void readAngleOrMinutes(const QJsonValue &value, double *angle, int *minutes)
+{
+    if (value.isDouble()) {
+        *angle = value.toDouble();
+        return;
+    }
+    if (value.isString()) {
+        const QString text = value.toString().trimmed().toLower();
+        if (text.endsWith(QLatin1String("min"))) {
+            *minutes = text.split(QLatin1Char(' ')).first().toInt();
+            return;
+        }
+        bool ok = false;
+        const double degrees = text.toDouble(&ok);
+        if (ok)
+            *angle = degrees;
+    }
+}
+
 MethodPreset parseMethod(const QJsonObject &payload)
 {
     MethodPreset method;
     const QJsonObject object = payload.value(QStringLiteral("method")).toObject();
     method.id = object.value(QStringLiteral("id")).toString();
     method.name = object.value(QStringLiteral("name")).toString();
-    if (object.contains(QStringLiteral("fajr")))
-        method.fajrAngle = object.value(QStringLiteral("fajr")).toDouble(-1);
-    if (object.contains(QStringLiteral("isha")))
-        method.ishaAngle = object.value(QStringLiteral("isha")).toDouble(-1);
+    readAngleOrMinutes(object.value(QStringLiteral("fajr")), &method.fajrAngle, &method.fajrMinutes);
+    readAngleOrMinutes(object.value(QStringLiteral("isha")), &method.ishaAngle, &method.ishaMinutes);
     method.asr = object.value(QStringLiteral("asr")).toString();
     method.highLat = object.value(QStringLiteral("highlat")).toString();
+
+    const QJsonObject adjustments = object.value(QStringLiteral("adjustments")).toObject();
+    for (auto it = adjustments.constBegin(); it != adjustments.constEnd(); ++it)
+        method.adjustments.insert(it.key(), it.value().toInt());
+
+    method.defaultsVersion = payload.value(QStringLiteral("defaults_version")).toString();
     return method;
 }
 

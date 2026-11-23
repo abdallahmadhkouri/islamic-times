@@ -2,6 +2,7 @@
 
 #include <QDate>
 #include <QDateTime>
+#include <QMap>
 #include <QString>
 #include <QTime>
 #include <QVector>
@@ -86,15 +87,22 @@ struct PrayerDay {
     bool isValid() const { return date.isValid(); }
 };
 
-// The method the provider used (or the one the user chose). Angles in degrees;
-// -1 means "not an angle" (e.g. Isha as a fixed interval).
+// Everything the provider says about *how* it computed the times. Nothing here is
+// interpreted: the library stores it so a future settings popup can show and
+// override it, and so a payload remains fully explainable.
 struct MethodPreset {
     QString id;
     QString name;
-    double fajrAngle = -1;
+    double fajrAngle = -1;      // degrees; -1 when the provider gives an interval
     double ishaAngle = -1;
-    QString asr;        // "standard" | "hanafi"
-    QString highLat;    // e.g. "middle_of_the_night"
+    int fajrMinutes = -1;       // used instead of the angle when present
+    int ishaMinutes = -1;
+    QString asr;                // "standard" | "hanafi"
+    QString highLat;            // e.g. "middle_of_the_night"
+    QMap<QString, int> adjustments;   // per-prayer minutes, e.g. dhuhr +7
+    QString defaultsVersion;    // the provider's own version stamp
+
+    bool hasTimes() const { return !id.isEmpty() || fajrAngle >= 0 || ishaAngle >= 0; }
 };
 
 } // namespace islamic
