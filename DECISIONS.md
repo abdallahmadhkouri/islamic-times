@@ -124,6 +124,15 @@ day sweep test pins it (five prayers, five iqama entries, five prayer windows).
 and between mosques. The parser copies them into `Provenance`; the UI decides how to
 show them. Nothing is hardcoded, and both paths are covered by tests.
 
+## 14. Eid is announced by the provider, not by us — settled by Saif
+
+The app will not print "subject to announcement" on the 29th and 30th. Iqamah updates
+the Hijri with the official announcement, and the daily mosque fetch plus the year
+payload are what carry it. So the rule is a freshness rule: re-read today's Hijri from
+the newest payload, never from an older cache, and refetch the mosque day every six
+hours and on resume. If the provider is a day late, so are we — identically, and
+without inventing a second opinion.
+
 ## 12. We never repair the provider's payload — settled (a rule, not a preference)
 
 If a field is null it stays null; if a value looks odd it is passed through; if a

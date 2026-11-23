@@ -1,0 +1,27 @@
+{
+  "format": "mosque/v1",
+  "id": "b22c7139-555e-4d41-81cd-186b7392ce8c",
+  "name": "Grande Mosquee de Paris",
+  "timezone": "Europe/Paris",
+  "status": "fresh",
+  "stale": false,
+  "as_of": "2027-02-08",
+  "extracted_at": "2027-02-08T05:10:00Z",
+  "fixture_note": "same shape as the real 2026-11-23 capture, re-dated to the year payload's Ramadan day",
+  "days": [{
+    "date": "2027-02-08",
+    "hijri": "1448-09-01",
+    "prayers": {
+      "fajr":    { "iqamah": { "time": "06:31" }, "azaan": { "mosque": { "time": "06:23" }, "method": "06:15" } },
+      "dhuhr":   { "iqamah": { "time": "13:11" }, "azaan": { "mosque": { "time": "13:03" }, "method": "12:55" } },
+      "asr":     { "iqamah": { "time": "15:45" }, "azaan": { "mosque": { "time": "15:37" }, "method": "15:29" } },
+      "maghrib": { "iqamah": { "time": "18:07" }, "azaan": { "mosque": { "time": "18:07" }, "method": "18:07" } },
+      "isha":    { "iqamah": { "time": "19:36" }, "azaan": { "mosque": { "time": "19:28" }, "method": "19:20" } }
+    },
+    "sunrise": { "mosque": null, "method": "07:51" },
+    "jumuah": []
+  }],
+  "method": { "id": "mwl", "name": "Muslim World League", "fajr": 18, "isha": 17, "asr": "standard", "highlat": "middle_of_the_night" },
+  "source": { "kind": "mosque" },
+  "defaults_version": "2027-01-01.1"
+}

@@ -140,6 +140,26 @@ MethodPreset parseMethod(const QJsonObject &payload)
     return method;
 }
 
+// A prayer that reads earlier than the one before it has crossed midnight. This is
+// ordering, not repair: the printed time is left exactly as the provider sent it,
+// and the offset records what the sequence already implies.
+void applyRollover(QVector<Prayer> *prayers)
+{
+    int dayOffset = 0;
+    QTime previous;
+    for (Prayer &prayer : *prayers) {
+        if (!prayer.adhan.isValid())
+            continue;
+        if (previous.isValid() && prayer.adhan < previous)
+            ++dayOffset;
+        prayer.adhanDayOffset = dayOffset;
+        prayer.iqamaDayOffset = dayOffset;
+        if (prayer.iqama.isValid() && prayer.iqama < prayer.adhan)
+            prayer.iqamaDayOffset = dayOffset + 1;
+        previous = prayer.adhan;
+    }
+}
+
 Prayer prayerFor(const QJsonObject &prayers, PrayerKey key)
 {
     Prayer prayer;
@@ -225,6 +245,7 @@ bool IqamahParser::parseMosqueDay(const QByteArray &json, PrayerDay *day, QStrin
         result.jumuah.append(parsed);
     }
 
+    applyRollover(&result.prayers);
     result.provenance = parseProvenance(payload, result.date);
     if (DayRules::isFriday(result.date))
         DayRules::applyJumuah(result);
@@ -269,8 +290,10 @@ bool IqamahParser::parseYearTimes(const QByteArray &json,
             Prayer prayer;
             prayer.key = key;
             prayer.adhan = parseTime(entry.value(prayerKeyId(key)));
+            prayer.methodAdhan = prayer.adhan;   // calculated by definition
             day.prayers.append(prayer);
         }
+        applyRollover(&day.prayers);
         day.provenance = parseProvenance(payload, day.date);
         parsedDays.append(day);
     }

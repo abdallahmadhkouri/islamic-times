@@ -21,6 +21,19 @@ untouched** (so our model can change without a migration, and so we never keep a
 the app passes `lat`/`lon`, because the launcher already has `cityLat`/`cityLng`
 from its city picker.
 
+## Where the phases stand (2026-11-23)
+
+| Phase | State |
+|---|---|
+| P1 cache | **done** — 10 tests |
+| P2 client + transport | **done** — 13 tests, live smoke green |
+| P3 chain | **done** — 7 tests |
+| P4 instants / poles | **done** via `adhanDayOffset` — Oslo and Tromsø pinned |
+| P5 QML | **done, differently** — one state map published as a context property, no QML plugin module (see ARCHITECTURE §11) |
+| P6 inspector | **done** — six widgets rendered from a pinned clock |
+| P7 launcher | **next** — one MR per widget, board first |
+| P8 Android | pending P7 |
+
 ## Phases
 
 ### P1 — Payload cache (no network)

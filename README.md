@@ -4,8 +4,12 @@ A C++/Qt library for Islamic time facts: what time it is for prayer, which Islam
 day it is, and what comes next. It is deliberately not a widget — widgets are views
 built on top of it.
 
-**Status:** core, parsers, tests and the behaviour report. The network client, the
-cache, the QML plugin and the widgets follow.
+**Status:** the library is complete and tested — cache, client, transport, chain, six
+widgets and an inspector. Launcher integration is the next phase.
+
+- `ARCHITECTURE.md` — how it is built, what was worked around, what the tests caught.
+- `FEATURES.md` — what the library gives a widget, and what each widget shows.
+- `PLAN.md` — the remaining phases and their gates.
 
 ## Why it exists
 

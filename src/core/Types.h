@@ -58,6 +58,13 @@ struct Prayer {
     QTime adhan;         // effective: mosqueAdhan if valid, else methodAdhan
     QTime iqama;         // invalid = the mosque publishes none
 
+    // Above ~55° in summer a prayer falls after midnight, and at 60° the provider
+    // prints it with a clock time that sorts *before* the prayer that precedes it
+    // (Oslo, 21 June: Isha 01:19 after Maghrib 22:44). The offset says how many
+    // days after the Gregorian date the time really belongs to.
+    int adhanDayOffset = 0;
+    int iqamaDayOffset = 0;
+
     bool hasAdhan() const { return adhan.isValid(); }
     bool hasIqama() const { return iqama.isValid(); }
     bool hasMosqueAdhan() const { return mosqueAdhan.isValid(); }

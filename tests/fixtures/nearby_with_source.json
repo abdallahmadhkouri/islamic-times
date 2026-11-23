@@ -1,0 +1,10 @@
+{
+  "location": { "lat": 48.84, "lon": 2.35 }, "radius_km": 10, "q": null, "total": 1,
+  "mosques": [{
+    "id": "b22c7139-555e-4d41-81cd-186b7392ce8c",
+    "name": "Grande Mosquee de Paris", "distance_km": 0.44,
+    "location": { "lat": 48.8421475, "lon": 2.3551022 },
+    "city": "Paris", "country": "France", "has_source": true,
+    "url": "https://api.iqamah.net/v1/mosque/b22c7139-555e-4d41-81cd-186b7392ce8c.json"
+  }]
+}

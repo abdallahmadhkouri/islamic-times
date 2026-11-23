@@ -10,6 +10,7 @@ set(TEST_SOURCES
     tst_nosource.cpp
     tst_payloadcache.cpp
     tst_iqamahclient.cpp
+    tst_chain.cpp
 )
 
 foreach(source ${TEST_SOURCES})

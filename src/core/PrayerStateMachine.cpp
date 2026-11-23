@@ -37,7 +37,7 @@ PrayerSnapshot evaluate(const PrayerDay &today,
             // to it, and counting to it would hide the next real prayer for an hour.
             if (prayer.key == PrayerKey::Sunrise)
                 continue;
-            const QDateTime adhan = at(today.date, prayer.adhan);
+            const QDateTime adhan = at(today.date.addDays(prayer.adhanDayOffset), prayer.adhan);
             if (!adhan.isValid())
                 continue;
 
@@ -47,7 +47,7 @@ PrayerSnapshot evaluate(const PrayerDay &today,
             // The adhan has been called. If the mosque publishes an iqama, it is
             // the next boundary; otherwise the prayer window starts now.
             if (prayer.hasIqama()) {
-                const QDateTime iqama = at(today.date, prayer.iqama);
+                const QDateTime iqama = at(today.date.addDays(prayer.iqamaDayOffset), prayer.iqama);
                 if (iqama.isValid()) {
                     if (now < iqama)
                         return waiting(PrayerState::WaitingIqama, prayer.key, iqama, now);
@@ -76,7 +76,7 @@ PrayerSnapshot evaluate(const PrayerDay &today,
         for (const Prayer &prayer : tomorrow->prayers) {
             if (prayer.key == PrayerKey::Sunrise)
                 continue;
-            const QDateTime adhan = at(tomorrow->date, prayer.adhan);
+            const QDateTime adhan = at(tomorrow->date.addDays(prayer.adhanDayOffset), prayer.adhan);
             if (!adhan.isValid() || adhan <= now)
                 continue;
             return waiting(PrayerState::WaitingAdhan, prayer.key, adhan, now);

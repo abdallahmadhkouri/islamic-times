@@ -67,8 +67,23 @@ private slots:
         QVERIFY(isha < maghrib);
         QCOMPARE(isha, fajr);
 
-        // And the state machine, today, therefore never reaches Isha: at 01:19
-        // it answers "Fajr" because that is the first prayer at that clock time.
+        // The rollover is recorded rather than repaired: the printed time is still
+        // 01:19, and the offset says it belongs to the next day.
+        QCOMPARE(day->prayer(PrayerKey::Isha)->adhanDayOffset, 1);
+        QCOMPARE(day->prayer(PrayerKey::Maghrib)->adhanDayOffset, 0);
+
+        // At 23:00 the evening now counts to Isha — the real one, after midnight —
+        // instead of quietly counting to Fajr and calling it the same thing.
+        // 23:10, just past the twenty-minute maghrib window, is when the evening
+        // must switch to Isha — the one that really happens tomorrow at 01:19.
+        const auto evening = evaluate(*day, nullptr, QDateTime(QDate(2027, 6, 21), QTime(23, 10)), 20);
+        QCOMPARE(evening.key, PrayerKey::Isha);
+        QCOMPARE(evening.seconds, 2 * 3600 + 9 * 60);
+        QCOMPARE(evening.target.date(), QDate(2027, 6, 22));
+
+        // At 01:19 the Gregorian day itself begins with Fajr; Isha of the night
+        // before belongs to yesterday's day object, which is a boundary the widget
+        // handles by asking for the previous day near a polar summer midnight.
         const auto snapshot = evaluate(*day, nullptr, QDateTime(QDate(2027, 6, 21), QTime(1, 19)), 20);
         QCOMPARE(snapshot.key, PrayerKey::Fajr);
     }
