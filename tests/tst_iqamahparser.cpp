@@ -102,7 +102,7 @@ private slots:
         QCOMPARE(day.prayer(PrayerKey::Dhuhr)->iqama, QTime(13, 20));  // jumuah iqama
     }
 
-    // A real day from a real mosque in Saif's town, as its own widget prints it.
+    // A real day from a real mosque in Saif's town, as the mosque's own app prints it.
     // The point of this fixture is that the gaps are not uniform: fajr waits 30
     // minutes, everything else 10. Any code that assumes one global iqama offset
     // fails here.

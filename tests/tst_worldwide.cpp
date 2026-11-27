@@ -82,7 +82,7 @@ private slots:
         QCOMPARE(evening.target.date(), QDate(2027, 6, 22));
 
         // At 01:19 the Gregorian day itself begins with Fajr; Isha of the night
-        // before belongs to yesterday's day object, which is a boundary the widget
+        // before belongs to yesterday's day object, which is a boundary the caller
         // handles by asking for the previous day near a polar summer midnight.
         const auto snapshot = evaluate(*day, nullptr, QDateTime(QDate(2027, 6, 21), QTime(1, 19)), 20);
         QCOMPARE(snapshot.key, PrayerKey::Fajr);
