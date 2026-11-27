@@ -17,11 +17,11 @@ and fails if any minute is unclassified or a target moves backwards.
 
 ## 2. The prayer window is a flat 20 minutes — OPEN, needs Saif
 
-After the iqama the tile shows "prayer in progress" for `inPrayerMinutes`, default 20.
+After the iqama the state machine reports `InPrayer` for `inPrayerMinutes`, default 20.
 Nothing in the data says how long the congregation takes. Options: keep 20 for all,
 per-prayer values (maghrib shorter, isha longer), until the next adhan, or a setting.
-My recommendation: keep 20 as the default but expose it in the library call, so the
-future widget settings popup can override it per widget.
+My recommendation: keep 20 as the default, exposed as a parameter, so a consumer can
+override it per use.
 
 ## 3. Jumua replaces Dhuhr on Friday — chosen, one part open
 
@@ -61,7 +61,7 @@ times. `CalculatedProvider` stays out of the library until there is a real reaso
 
 `ramadan` is 1 Ramadan, `lastten` is 21 Ramadan, `qadr` is 27 Ramadan, `fitr` is
 1 Shawwal, `adha` is 10 Dhuwal-Hijjah, and so on. The "current" event is the most
-recent one that has started. So on 21 Ramadan the widget's hero becomes
+recent one that has started. So on 21 Ramadan the current event becomes
 **العشر الأواخر** and Ramadan is no longer the current event — it has become the
 period you are inside, not the thing you are counting to. This is what Saif asked
 for ("once Ramadan started it should be the last ten nights, then the 27th").
@@ -99,7 +99,7 @@ choice is 10 or 25, and 25 is exactly the one that would drag in Bu Ballal at
   only claim it as "your mosque" when `has_source` is true.
 - Never adopt a mosque 17 km away: its jamaa belongs to another town.
 - No mosque (or `has_source: false`) means the **iqama layer is absent**, not
-  broken: the widget counts to the adhan and looks finished without it.
+  broken: the day is still valid and carries calculated times only.
 
 Consequence for the design: the iqama countdown is an *optional second layer*, not
 the baseline. `tst_nosource` walks a whole day that has no iqama at all.
@@ -126,7 +126,7 @@ show them. Nothing is hardcoded, and both paths are covered by tests.
 
 ## 14. Eid is announced by the provider, not by us — settled by Saif
 
-The app will not print "subject to announcement" on the 29th and 30th. Iqamah updates
+The library will not invent a "subject to announcement" state on the 29th and 30th. Iqamah updates
 the Hijri with the official announcement, and the daily mosque fetch plus the year
 payload are what carry it. So the rule is a freshness rule: re-read today's Hijri from
 the newest payload, never from an older cache, and refetch the mosque day every six

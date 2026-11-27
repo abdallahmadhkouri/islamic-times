@@ -1,87 +1,55 @@
 # islamic-times
 
-A C++/Qt library for Islamic time facts: what time it is for prayer, which Islamic
-day it is, and what comes next. It is deliberately not a widget — widgets are views
-built on top of it.
+A C++/Qt wrapper around the [iqamah](https://iqamah.org) API: prayer times, the local
+mosque's jamaa times, Hijri dates, Islamic events, and a countdown state machine —
+with a cache that survives a network outage and a model that survives the poles.
 
-**Status:** the library is complete and tested — cache, client, transport, chain, six
-widgets and an inspector. Launcher integration is the next phase.
+It is a library. It has no UI, no Arabic strings, no fonts and no opinion about what
+you draw with it. Any Qt project — a launcher, a kiosk, a desktop app, a service, a
+car HMI — links it and asks for a day.
 
-- `ARCHITECTURE.md` — how it is built, what was worked around, what the tests caught.
-- `FEATURES.md` — what the library gives a widget, and what each widget shows.
-- `PLAN.md` — the remaining phases and their gates.
+**Status:** complete and tested (ten suites, 364 assertions). See `ARCHITECTURE.md`,
+`FEATURES.md`, `DECISIONS.md` and `PLAN.md`.
 
-## Why it exists
+## What it answers
 
-A launcher, a kiosk and a car HMI all need the same five facts — today's Hijri date,
-the five prayer times, the mosque's iqama, jumua, and the next Islamic event — and
-none of them should own a second copy of the logic. This library is that single copy.
+```cpp
+PayloadCache cache;                 // app-private data dir, /iqamah
+QNetworkTransport transport;        // https only, manual redirects
+IqamahClient client(&transport);    // keyless, one retry
+IslamicTimes times(&client, &cache);
 
-Two rules shape everything here:
+const DayResult day = times.dayFor(36.80, 10.18, QDate(2027, 2, 8));
 
-1. **No Hijri arithmetic.** The provider sends `(Gregorian day, Hijri day)` pairs for a
-   whole year, so every Hijri answer is a lookup. A lookup cannot drift by a day; a
-   computed calendar can, and Qt's built-in Islamic calendars are measured one day late
-   on 13 of 24 month starts, including Eid al-Fitr 1448.
-2. **No formatting.** The library returns numbers, dates, keys and enums. The Arabic
-   lives in QML, where it belongs.
-
-## Data source
-
-Iqamah — <https://iqamah.org> — `api.iqamah.net`. Free for personal and commercial use,
-no key, no sign-up; attribution required:
-
-> Prayer times: Iqamah (iqamah.org)
-
-Official timetables carry their authority's attribution in `source.attribution`; the
-parser keeps the provenance so a UI can show it.
-
-## Layout
-
-| Path | What |
-|---|---|
-| `src/core/Types.*` | `HijriDate`, `Prayer`, `PrayerDay`, `Jumuah`, `Provenance`, `MethodPreset` |
-| `src/core/HijriYear.*` | Gregorian ⇄ Hijri lookups over the provider's year |
-| `src/core/EventCalendar.*` | the nine events, and the one rule that produces the sequence |
-| `src/core/DayRules.*` | Friday: the khutbah replaces Dhuhr |
-| `src/core/PrayerStateMachine.*` | `WaitingAdhan → WaitingIqama → InPrayer → next` |
-| `src/providers/IqamahParser.*` | bytes in, value types out |
-| `tests/` | 5 suites, 46 test functions, 178 assertions, no network |
-
-## Seeing it
-
-`tools/report` turns the library's own state into JSON, and `render.py` turns that
-JSON into one page you can read at a glance:
-
-```bash
-./build/tools/report/it-report \
-  --year tests/fixtures/year_times.json \
-  --mosque tests/fixtures/mosque_day.json \
-  --date 2027-02-08 --step 5 > report.json
-python3 tools/report/render.py report.json > report.html
+day.day.hijri                                  // 1448-09-01
+day.day.prayer(PrayerKey::Fajr)->adhan         // 05:48  effective
+day.day.prayer(PrayerKey::Fajr)->mosqueAdhan   // invalid: the mosque publishes none
+day.method.id                                  // "tn_ministry"
+day.mosque.isValid()                           // false: no mosque within 10 km
+day.notice                                     // why, in one sentence
 ```
 
-The page shows, for one real day: where every number came from (method, angles,
-adjustments, iqama provenance), a 24-hour band chart of the four states, six tiles
-showing what a widget would display at six moments, the prayer table, a half-hourly
-state table, and a Hijri month calendar with the events on it.
+and for the countdown:
 
-It exists because a state machine is hard to trust from unit tests alone: the first
-run of the report showed that the `InPrayer` state **never fired** — the tool's own
-`--in-prayer` value defaulted to 0 — which no single-instant test had noticed. The day
-sweep test now pins the whole 1440-minute path.
-
-## The state machine
-
-The thing everybody gets wrong. Sunrise is not a prayer and is skipped; without an
-iqama the prayer window starts at the adhan; after Isha the countdown continues to
-tomorrow's Fajr when the caller provides it.
-
-```
-WaitingAdhan ──adhan──▶ WaitingIqama ──iqama──▶ InPrayer ──window──▶ WaitingAdhan
+```cpp
+const PrayerSnapshot now = evaluate(day.day, &tomorrow,
+                                   QDateTime(QDate(2027, 2, 8), QTime(5, 20)));
+now.state      // WaitingAdhan -> WaitingIqama -> InPrayer -> next
+now.key        // Fajr
+now.seconds    // 1680
 ```
 
-## Build and test
+## Three rules the library keeps
+
+1. **The provider owns its data.** Nothing is repaired, filled in or corrected. A null
+   stays null; a mosque without a timetable says so; the mosque's own adhan and the
+   calculated one are kept apart so a consumer can tell the difference.
+2. **No local calculation.** If there is no payload and no cache, the answer is "no
+   times", not a number this library invented.
+3. **The cache stores bytes.** What is on disk is what iqamah sent, so the model can
+   change without a migration and a stale payload can be audited.
+
+## Build
 
 ```bash
 cmake -S . -B build -DCMAKE_PREFIX_PATH=/path/to/Qt/6.12.0/gcc_64
@@ -89,33 +57,11 @@ cmake --build build --parallel
 ctest --test-dir build --output-on-failure
 ```
 
-Qt 6.5 or newer, Core only.
+Qt 6.5 or newer. `islamic-times` links Qt Core only; `islamic-times-net` adds Qt
+Network for the real transport, so a consumer that fetches nothing pays nothing.
 
-## Storage, and why it is Android-shaped
+## Licence and data
 
-Cache is a backup, not the source of truth: the network is asked first, every launch
-and every few hours; the cache fills the gaps and marks what it serves as stale.
-
-| | |
-|---|---|
-| Where | `QStandardPaths::AppDataLocation` → on Android `/data/data/<package>/files`, app-private, no permission, no storage prompt, survives reboot, removed on uninstall |
-| What | one JSON per year (`times-2027.json`, ~122 KB) and one per mosque day (`mosque-<id>-<date>.json`, ~1.7 KB) |
-| How written | `QSaveFile` — temp file plus atomic rename, so an interrupted write can never leave a half file |
-| How read | synchronously at startup; 122 KB parses in a few milliseconds, so the first frame is already correct instead of flashing placeholders |
-| Why not SQLite | the access pattern is "one file per day, read once" — a database would add a dependency and size for no query |
-
-Nothing is written outside the app's private directory, so the library needs no
-storage permission on any Android version, and nothing breaks when the OS tightens
-scoped storage further.
-
-## Roadmap
-
-1. `YearCache` — one JSON per year under `QStandardPaths`, read synchronously at startup.
-2. `IqamahProvider` — `QNetworkAccessManager`, the two real calls, retry and staleness.
-3. `ProviderChain` — iqamah → cached → predicted iqama offsets, each value carrying its source.
-4. QML plugin: `IslamicTimes` singleton + `PrayerDayModel`.
-5. Six widgets: prayer board, next prayer, next prayer + event, Ramadan, next event + Hijri date, jumua.
-
-## Licence
-
-MIT — see `LICENSE`.
+MIT. Prayer data from Iqamah — free for personal and commercial use, attribution
+required: **Prayer times: Iqamah (iqamah.org)**. Official timetables carry their
+authority's attribution in `source.attribution`, which the parser preserves.

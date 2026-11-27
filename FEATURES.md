@@ -1,80 +1,84 @@
 # Features
 
-*What the library does, what each widget shows, and what is deliberately absent.*
+What the library gives a Qt project, and what it deliberately does not.
 
-## The library
+## Times
 
-**Times** — a full year of calculated prayer times per location, from the provider,
-with the method that produced them (`tn_ministry`, `mwl`, `isna`, `umm_al_qura`…),
-Fajr/Isha as an angle or as an interval, the Asr rule, the high-latitude rule, the
-per-prayer adjustments and the provider's own `defaults_version`. Nothing is
-recomputed locally, so nothing can disagree with the source.
+A full year of calculated prayer times per location, with the method that produced
+them: the id and name (`tn_ministry`, `mwl`, `isna`, `umm_al_qura`…), Fajr and Isha as
+an angle **or** as an interval, the Asr rule, the high-latitude rule, the per-prayer
+adjustments map and the provider's own `defaults_version`. Every field is carried, none
+is interpreted. Nothing is recomputed, so nothing can disagree with the source.
 
-**The mosque** — nearest mosque within 10 km, adopted only when it publishes a
-timetable; its own adhan and jamaa times, its Friday services, its freshness.
+## The mosque
 
-**Two sources of truth kept apart** — the mosque's call and the calculated time are
-always both available, so a widget can say "calculated" when that is the truth.
+Nearest mosque within a configurable radius (2, 5, 10, 25 or 50 km — the API's own
+ladder), adopted only when the provider says it publishes a timetable. Its adhan and
+jamaa times, its Friday services, its freshness and staleness. `has_source` is the
+gate: a pin without a timetable is reported as such and never dressed up.
 
-**The smart countdown** — `WaitingAdhan → WaitingIqama → InPrayer → next`, with the
-prayer window configurable, sunrise excluded, maghrib's zero-gap handled, and the
-evening counting to tomorrow's Fajr. Works with or without a mosque: without one it
-counts to the adhan and shows no jamaa.
+## Two adhan times, never merged
 
-**Hijri** — a lookup against the provider's own day records, never arithmetic; 730
-consecutive days are a test fixture.
+`mosqueAdhan` is what the mosque calls, `methodAdhan` is what the calculation says,
+`adhan` is the effective one. A consumer can therefore say "calculated" when that is
+the truth, instead of silently presenting a computed time as the mosque's.
 
-**Events** — nine, with the current and the next resolved, so Ramadan gives way to the
-last ten nights on the 21st and to Laylat al-Qadr on the 27th, as asked.
+## Countdown state machine
 
-**Friday** — Dhuhr becomes Jumua, the khutbah becomes the anchor, and a mosque with two
-services keeps both.
+    WaitingAdhan ──adhan──▶ WaitingIqama ──iqama──▶ InPrayer ──window──▶ next
 
-**Offline** — a year of times and the last mosque day survive with no network; anything
-served from cache is marked stale; a cold offline install shows dashes rather than
-invented numbers.
+- Sunrise is excluded: it is an astronomical event, not a prayer.
+- No jamaa → the window starts at the adhan, and no iqama is invented.
+- `iqama == adhan` (maghrib) goes straight to the prayer window.
+- After Isha, with tomorrow's day supplied, it counts to tomorrow's Fajr.
+- The window length is a parameter, because Fajr ends at sunrise and Maghrib does not.
+- A prayer that falls after midnight carries a day offset, so the evening names the
+  right prayer above 55°N in summer.
 
-**Worldwide** — Tunisia, France, Norway above the Arctic circle, Saudi Arabia: the
-method is data, the Hijri is data, and a prayer that crosses midnight is recorded
-rather than misplaced.
+## Hijri
 
-## The widgets
+A lookup against the provider's own `(Gregorian, Hijri)` pairs, never arithmetic. 730
+consecutive real days are a test fixture; Qt's Islamic calendars were measured a day
+late on 13 of 24 month starts.
 
-### NextPrayer — 1×1
-The prayer that is coming, in one glance: its name in Amiri, the countdown in Tajawal,
-and one quiet line carrying the state and the clock time ("إلى الأذان · 06:23"). The
-accent colour is the state: gold for waiting, amber for the jamaa, teal while the
-prayer is being performed.
+## Events
 
-### PrayerBoard — 2×2
-All six rows, right-to-left, with the next row lit by a gold band and a bar on its
-leading edge. Passed prayers recede; the adhan and the jamaa are separate columns; a
-dash stands where there is no jamaa rather than a blank.
+Nine events as instants — Ramadan, the last ten nights, Laylat al-Qadr, Eid al-Fitr,
+Arafah, Eid al-Adha, the new year, Ashura, the Mawlid — with the current and the next
+resolved. Two contested observances are in the table but opt-in.
 
-### NextPrayerEvent — 2×1
-Two halves: the prayer that is coming, and the feast after it, with what is happening
-now underneath. Built for the long view: "٢٠ يومًا" to the last ten nights is the kind
-of fact a family actually wants on the wall.
+## Friday
 
-### Ramadan — 2×1
-The fast as a span: the day number, imsak and iftar, a countdown to whichever end is
-next, and a line that fills as the day is fasted.
+On a Friday the Dhuhr row becomes Jumua, the khutbah becomes the anchor, a missing
+khutbah falls back to the service time, and a mosque with two services keeps both.
 
-### HijriEvent — 1×1
-Today's Hijri date, large, with the next event and how far away it is.
+## Cache and offline
 
-### Jumua — 2×1
-On Friday: the khutbah time and the countdown to it. On any other day: how many days
-until Friday, so the tile is never empty and never lies.
+One file per payload, written with `QSaveFile` (temp + atomic rename), keyed by rounded
+location and day, aged out by policy. On Android it lives in the app's private data
+directory: no permission, no prompt, gone on uninstall. Offline the library serves the
+cached year, marks what is old, and says so — or reports that it has nothing.
 
-## Deliberately absent
+## Worldwide
 
-- **No local prayer calculation.** No network and no cache means dashes. Adding a
-  calculator would create a second source of truth.
-- **No scraping of other apps.** Mawaqit refused; iqamah is the source, and its country
-  fallback is good enough where it has no mosque.
-- **No adhan audio, no Qibla, no Quran, no taraweeh tracking** in this library.
-- **No settings UI.** Every parameter the settings popup will need (window minutes,
-  radius, minor events, mosque choice) already exists in the API surface.
-- **No per-client mosque entry yet.** If the user's mosque publishes nothing, the app
-  uses the country calculation — the same thing the official app does.
+Measured against real payloads: Tunisia (ministry method), Paris (MWL, a mosque with a
+timetable), Chicago (ISNA), Makkah (Umm al-Qura, Isha as a 90-minute interval with no
+angle) and Norway above the Arctic circle, where prayers do not occur at all in June
+and the provider sends null. Nulls are carried, not patched.
+
+## Errors
+
+One small enum — `InvalidArgument`, `Network`, `HttpStatus`, `Redirect`, `Empty` — with
+a sentence for each. One retry, only where a retry can help. Redirects are reported, not
+followed: this API answers 301 for an unknown parameter, and following it would turn a
+mistake into a silent success.
+
+## Deliberately not included
+
+- **Any UI**: no QML, no fonts, no colours, no Arabic strings.
+- **Local prayer calculation**: no network and no cache means no times.
+- **Scraping**: iqamah is the source; where it has no mosque, its country calculation
+   is the answer.
+- **Adhan audio, Qibla, Quran, taraweeh tracking.**
+- **A settings UI**: every parameter a settings screen needs (window minutes, radius,
+   minor events, mosque choice) already exists in the API.
