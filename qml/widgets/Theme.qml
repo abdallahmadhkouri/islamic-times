@@ -70,6 +70,18 @@ QtObject {
         return out
     }
 
+    // While the prayer is being performed there is nothing to count, and a lone
+    // number reads as a clock time. Say the state instead.
+    function headline(next) {
+        if (!next)
+            return "—"
+        if (next.state === "inPrayer")
+            return "الصلاة"
+        if (next.state === "idle")
+            return "—"
+        return countdown(next.seconds)
+    }
+
     function days(n) {
         if (n === 0) return "اليوم"
         if (n === 1) return "غدًا"

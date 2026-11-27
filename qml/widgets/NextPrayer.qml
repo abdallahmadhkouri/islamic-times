@@ -36,7 +36,7 @@ Item {
 
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: root.next ? W.Theme.countdown(root.next.seconds) : "—"
+            text: W.Theme.headline(root.next)
             color: root.accent
             font.family: W.Theme.ui
             font.weight: Font.ExtraBold

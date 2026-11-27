@@ -197,7 +197,10 @@ int main(int argc, char **argv)
     QCommandLineOption outOption(QStringLiteral("out"), QStringLiteral("output directory"), QStringLiteral("dir"), QStringLiteral("."));
     QCommandLineOption widgetOption(QStringLiteral("widget"), QStringLiteral("one widget name"), QStringLiteral("name"));
     QCommandLineOption scaleOption(QStringLiteral("scale"), QStringLiteral("render scale"), QStringLiteral("factor"), QStringLiteral("2"));
-    parser.addOptions({ yearOption, mosqueOption, dateOption, instantOption, outOption, widgetOption, scaleOption });
+    // A mosque fixture carries times, not a name: the name is passed explicitly so
+    // the picture can never claim a mosque that did not provide the numbers.
+    QCommandLineOption mosqueNameOption(QStringLiteral("mosque-name"), QStringLiteral("label for the mosque fixture"), QStringLiteral("name"));
+    parser.addOptions({ yearOption, mosqueOption, dateOption, instantOption, outOption, widgetOption, scaleOption, mosqueNameOption });
     parser.process(app);
 
     QVector<PrayerDay> days;
@@ -241,9 +244,9 @@ int main(int argc, char **argv)
             }
             day.jumuah = mosqueDay.jumuah;
             mosque.id = QStringLiteral("fixture");
-            mosque.name = QStringLiteral("جامع الرحمة 2 · سيدي علي بن عون");
-            mosque.hasSource = true;
-            mosque.distanceKm = 1.2;
+            mosque.name = parser.value(mosqueNameOption);
+            mosque.hasSource = !mosque.name.isEmpty();
+            mosque.distanceKm = 0;
         }
     }
 

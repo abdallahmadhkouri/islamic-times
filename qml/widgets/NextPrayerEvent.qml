@@ -40,7 +40,7 @@ Item {
                 }
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
-                    text: root.next ? W.Theme.countdown(root.next.seconds) : "—"
+                    text: W.Theme.headline(root.next)
                     color: root.next && root.next.state === "waitingIqama" ? W.Theme.amber
                          : root.next && root.next.state === "inPrayer" ? W.Theme.teal : W.Theme.gold
                     font.family: W.Theme.ui
@@ -88,9 +88,9 @@ Item {
                 Text {
                     anchors.horizontalCenter: parent.horizontalCenter
                     text: root.event && root.event.currentId ? ("الآن: " + W.Theme.eventNames[root.event.currentId]) : ""
-                    color: W.Theme.inkFaint
+                    color: W.Theme.inkDim
                     font.family: W.Theme.ui
-                    font.pixelSize: 11 * root.base
+                    font.pixelSize: 12 * root.base
                 }
             }
         }

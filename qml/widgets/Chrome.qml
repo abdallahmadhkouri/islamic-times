@@ -76,10 +76,10 @@ Item {
         anchors.top: parent.top
         anchors.topMargin: 20 * root.base
         anchors.leftMargin: 10 * root.base
-        text: root.mosque
-        color: W.Theme.inkFaint
+        text: root.mosque.length ? root.mosque : (root.hijri.length ? "حساب فلكي" : "")
+        color: W.Theme.inkDim
         font.family: W.Theme.ui
-        font.pixelSize: 13 * root.base
+        font.pixelSize: 14 * root.base
         width: parent.width * 0.52
         elide: Text.ElideLeft
     }
