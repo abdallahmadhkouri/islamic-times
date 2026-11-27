@@ -22,6 +22,6 @@ consumer would notice.
 
 ## Consumers
 
-The six prayer tiles live in a separate project (`islamic-widgets`), which depends on
-this library and owns every visual decision. That separation is the point: the library
-is generic, the tiles are not.
+Everything visual lives in the projects that consume this library; nothing about a
+particular screen belongs here. That separation is the point: the library is generic,
+the screens are not.

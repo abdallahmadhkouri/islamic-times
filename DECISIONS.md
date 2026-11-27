@@ -9,8 +9,8 @@ Statuses: **settled** (evidence-backed), **chosen** (a defensible default, chang
 ## 1. Sunrise is not a countdown target — settled
 
 The state machine skips `Sunrise`. Counting to sunrise would answer "sunrise in 45 min"
-at 06:15 and hide Dhuhr behind it for an hour. Sunrise is still in the day, so widgets
-can show it (and the Ramadan widget needs it for suhoor/imsak).
+at 06:15 and hide Dhuhr behind it for an hour. Sunrise is still in the day, so a consumer
+can show it (and a Ramadan view needs it for suhoor).
 
 The day sweep test (`theWholeDayIsCoveredAndEveryWindowHolds`) walks all 1440 minutes
 and fails if any minute is unclassified or a target moves backwards.
@@ -54,7 +54,7 @@ oldest cached one.
 
 ## 5. No local prayer calculation — settled by Saif
 
-If there is no payload, the widget shows a dash. No fallback calculator, no guessed
+If there is no payload, the value is absent. No fallback calculator, no guessed
 times. `CalculatedProvider` stays out of the library until there is a real reason.
 
 ## 6. Events are instants, not spans — chosen
@@ -110,7 +110,7 @@ The mosque endpoint publishes **today** (about 1.7 KB). Tomorrow's iqama is toda
 `iqama − adhan` offsets applied to tomorrow's calculated adhan, and the result is
 flagged `provenance.predicted = true`. This is how the whole year can still show iqama
 while offline. If a mosque changes its iqama, the next daily fetch corrects it and the
-widget stops saying "predicted".
+value stops being reported as predicted.
 
 ## 9. Maghrib with a zero gap — settled
 
@@ -147,7 +147,7 @@ Two consequences already implemented:
   the absence of iqama, never as an error and never as a substituted value.
 - The provider sends **two** adhan times and both are kept: `mosqueAdhan` (what the
   mosque calls) and `methodAdhan` (what the calculation says). The effective
-  `adhan` is the mosque's when it exists. Nothing is overwritten, so a widget can
+  `adhan` is the mosque's when it exists. Nothing is overwritten, so a caller can
   still tell the user "this is the calculated time, not your mosque's".
 
 Rejected on this basis: inferring Umm al-Qura's 90-minute Isha interval from the
